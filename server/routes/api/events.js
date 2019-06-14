@@ -4,15 +4,9 @@ const mongodb = require('mongodb');
 const router = express.Router();
 
 // Get events
-router.get('/', async (req, res) => {
+router.get('/', async (_req, res) => {
   const events = await loadEventsCollection();
   res.send(await events.find({}).toArray());
-});
-
-// Get base events
-router.get('/base', async (req, res) => {
-  const baseEvents = await loadBaseEventsCollection();
-  res.send(await baseEvents.find({}).toArray());
 });
 
 // Add event
@@ -25,8 +19,46 @@ router.post('/', async (req, res) => {
   res.status(201).send();
 });
 
+// Delete event
+router.delete('/:id', async (req, res) => {
+  const events = await loadEventsCollection();
+  await events.deleteOne({
+    _id: new mongodb.ObjectID(req.params.id)
+  });
+  res.status(200).send();
+});
+
+// Get base events
+router.get('/base', async (_req, res) => {
+  const baseEvents = await loadBaseEventsCollection();
+  res.send(await baseEvents.find({}).toArray());
+});
+
+// Add bases event
+router.post('/base', async (req, res) => {
+  repeatValue = req.body.repeat || '0';
+  parsedRepeat = parseInt(repeatValue);
+  createEvent({
+    type: req.body.type,
+    start: new Date(req.body.start),
+    end: new Date(req.body.end),
+    repeat: parsedRepeat,
+  });
+  createEventsFromBaseEvent(await baseEvents.findOne({type: req.body.type}));
+  res.status(201).send();
+});
+
+// Delete base event
+router.delete('/base/:id', async (req, res) => {
+  const events = await loadEventsCollection();
+  await events.deleteOne({
+    _id: new mongodb.ObjectID(req.params.id)
+  });
+  res.status(200).send();
+});
+
 // Update base event
-router.patch('/', async (req, res) => {
+router.patch('/base', async (req, res) => {
   const baseEvents = await loadBaseEventsCollection();
   await baseEvents.updateOne({
     type: req.body.type
