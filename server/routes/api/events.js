@@ -9,6 +9,19 @@ router.get('/', async (_req, res) => {
   res.send(await events.find({}).toArray());
 });
 
+// Get all events that end after today-2.days and start before today+4.days
+router.get('/current', async (_req, res) => {
+  const events = await loadEventsCollection();
+  res.send(await events.find({
+    start: {
+      $lte: addDays(new Date(), 4)
+    },
+    end: {
+      $gte: subDays(new Date(), 2)
+    }
+  }).toArray());
+});
+
 // Add event
 router.post('/', async (req, res) => {
   createEvent({
@@ -127,6 +140,13 @@ async function createEventsFromBaseEvent(baseEvent) {
 function addDays(date, days) {
   var result = new Date(date);
   result.setDate(result.getDate() + days);
+  return result;
+}
+
+// Helper to subtract X days from date
+function subDays(date, days) {
+  var result = new Date(date);
+  result.setDate(result.getDate() - days);
   return result;
 }
 
