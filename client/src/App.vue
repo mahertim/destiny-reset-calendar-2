@@ -1,12 +1,13 @@
 <template>
   <div id="app">
     <div id="header">
-      <h1 class="header-text">Destiny 2 Powerful Engram Reset Calendar 2.0</h1>
+      <h1 class="header-text large-screen">Destiny 2 Powerful Engram Reset Calendar</h1>
+      <h1 class="header-text small-screen">Destiny Reset Calendar</h1>
     </div>
     <CalendarView />
     <div class="grid-container-footer">
       <div id="weekly-reset-box" class="grid-item-footer">
-        <h2 class="header-text">Weekly Resets Include:</h2>
+        <h2 class="header-text">Weekly Reset Includes:</h2>
         <div class="grid-container-weekly-list">
           <div class="grid-item-weekly-list"><ul><li>Spider's Powerful Bounty</li></ul></div>
           <div class="grid-item-weekly-list"><ul><li>Raids</li></ul></div>

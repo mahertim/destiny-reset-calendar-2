@@ -1,7 +1,7 @@
 <template>
-  <div class="grid-container">
+  <div class="grid-container-calendar">
     <div
-      class="grid-item day"
+      class="grid-item-calendar day"
       v-for="(day, index) in days"
       v-bind:key="index"
       v-bind:class="{ today: isToday(day)}"
@@ -125,12 +125,12 @@ export default {
 </script>
 
 <style>
-.grid-container {
+.grid-container-calendar {
   display: grid;
   grid-template-columns: repeat(14, 1fr);
 }
 
-.grid-item {
+.grid-item-calendar {
   margin: 2px;
   padding: 2px;
   text-align: center;
@@ -259,35 +259,35 @@ export default {
 
 .future-gambit {
   background: #466d5d;
-  color: #FFFFFF;
+  color: #7F7F7F;
 }
 
 .future-vanguard {
   background: #ec976e;
-  color: #FFFFFF;
+  color: #7F7F7F;
 }
 
 .future-crucible {
   background: #c15d5b;
-  color: #FFFFFF;
+  color: #7F7F7F;
 }
 
 .future-weekly {
   background: #7194a5;
-  color: #FFFFFF;
+  color: #7F7F7F;
 }
 
 .future-heroic-adventure {
   background: #383b4f;
-  color: #FFFFFF;
+  color: #7F7F7F;
 }
 
 .future-special {
   background: #E8C979;
-  color: #FFFFFF;
+  color: #7F7F7F;
 }
 
 .past {
-  background: #9e9e9e;
+  background: #7F7F7F;
 }
 </style>

@@ -1,7 +1,7 @@
 <template>
-  <div class="grid-container start-last-week end-next-week">
+  <div class="grid-container-calendar start-last-week end-next-week">
     <div
-      class="grid-item event"
+      class="grid-item-calendar event"
       v-for="event in events"
       v-bind:key="event.index"
       v-bind:class="classesForEvent(event)"
