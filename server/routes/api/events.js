@@ -9,15 +9,19 @@ router.get('/', async (_req, res) => {
   res.send(await events.find({}).toArray());
 });
 
-// Get all events that end after today-2.days and start before today+4.days
+// Get all events that have this week between their start and end
+// this means that the start of this week must be before the their end
+// and the end of this week must be after their start
 router.get('/current', async (_req, res) => {
   const events = await loadEventsCollection();
+  const thisWeekStart = subDays(new Date(), 3);
+  const thisWeekEnd = addDays(new Date(), 4);
   res.send(await events.find({
     start: {
-      $lte: addDays(new Date(), 4)
+      $lte: thisWeekEnd
     },
     end: {
-      $gte: subDays(new Date(), 2)
+      $gte: thisWeekStart
     }
   }).toArray());
 });
@@ -74,6 +78,29 @@ router.post('/base', async (req, res) => {
   res.status(201).send();
 });
 
+// Add base events
+router.post('/base/many', async (req, res) => {
+  const events = await loadEventsCollection();
+  await events.deleteMany({});
+  const baseEvents = await loadBaseEventsCollection();
+  await baseEvents.deleteMany({});
+  baseEventsToAdd = []
+  for (index in req.body.items) {
+    const event = req.body.items[index];
+    baseEventsToAdd = [...baseEventsToAdd, {
+      type: event.type,
+      start: new Date(event.start),
+      end: new Date(event.end),
+      repeat: event.repeat,
+    }];
+  }
+  createBaseEvents(baseEventsToAdd);
+  baseEventsToAdd.forEach( baseEvent => {
+    createEventsFromBaseEvent(baseEvent)
+  });
+  res.status(201).send();
+});
+
 // Update base event
 router.patch('/base/:id', async (req, res) => {
   const baseEvents = await loadBaseEventsCollection();
@@ -118,6 +145,12 @@ async function createBaseEvent(item) {
   await baseEvents.insertOne(item);
 }
 
+// Helper to create many base events with only one database call
+async function createBaseEvents(items) {
+  const baseEvents = await loadBaseEventsCollection();
+  await baseEvents.insertMany(items);
+}
+
 // Helper to generate repating events based on a base event
 async function createEventsFromBaseEvent(baseEvent) {
   const events = await loadEventsCollection();
@@ -132,7 +165,7 @@ async function createEventsFromBaseEvent(baseEvent) {
     }];
     date = addDays(date, baseEvent.repeat);
   }
-  createEvents(eventsToAdd)
+  createEvents(eventsToAdd);
 }
 
 // Helper to add X days to date
