@@ -1,6 +1,6 @@
 import axios from 'axios';
 
-const url = 'http://localhost:5000/api/events/';
+const url = '/api/events/';
 
 class EventService {
   // Get Events
