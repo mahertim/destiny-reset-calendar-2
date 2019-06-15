@@ -55,6 +55,11 @@
             Voqics
           </a>
         </p>
+        <p class="social-link">
+          <a href="http://legacy.destinyreset.net" target="_blank">
+            Legacy Site
+          </a>
+        </p>
       </div>
     </div>
   </div>
