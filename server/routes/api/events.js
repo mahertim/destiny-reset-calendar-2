@@ -5,15 +5,18 @@ const router = express.Router();
 
 // Get all events
 router.get('/', async (_req, res) => {
-  const events = await loadEventsCollection();
+  const client = await getMongoClient();
+  const events = await loadEventsCollection(client);
   res.send(await events.find({}).toArray());
+  await closeMongoClient(client);
 });
 
 // Get all events that have this week between their start and end
 // this means that the start of this week must be before the their end
 // and the end of this week must be after their start
 router.get('/current', async (_req, res) => {
-  const events = await loadEventsCollection();
+  const client = await getMongoClient();
+  const events = await loadEventsCollection(client);
   const thisWeekStart = subDays(new Date(), 3);
   const thisWeekEnd = addDays(new Date(), 4);
   res.send(await events.find({
@@ -24,6 +27,7 @@ router.get('/current', async (_req, res) => {
       $gte: thisWeekStart
     }
   }).toArray());
+  await closeMongoClient(client);
 });
 
 // Add event
@@ -38,7 +42,8 @@ router.post('/', async (req, res) => {
 
 // Update event
 router.patch('/:id', async (req, res) => {
-  const events = await loadEventsCollection();
+  const client = await getMongoClient();
+  const events = await loadEventsCollection(client);
   await events.updateOne({
     _id: new mongodb.ObjectID(req.params.id)
   },{
@@ -47,21 +52,26 @@ router.patch('/:id', async (req, res) => {
     end: new Date(req.body.end),
   });
   res.status(201).send();
+  await closeMongoClient(client);
 });
 
 // Delete event
 router.delete('/:id', async (req, res) => {
-  const events = await loadEventsCollection();
+  const client = await getMongoClient();
+  const events = await loadEventsCollection(client);
   await events.deleteOne({
     _id: new mongodb.ObjectID(req.params.id)
   });
   res.status(200).send();
+  await closeMongoClient(client);
 });
 
 // Get base events
 router.get('/base', async (_req, res) => {
-  const baseEvents = await loadBaseEventsCollection();
+  const client = await getMongoClient();
+  const baseEvents = await loadBaseEventsCollection(client);
   res.send(await baseEvents.find({}).toArray());
+  await closeMongoClient(client);
 });
 
 // Add base event
@@ -80,9 +90,10 @@ router.post('/base', async (req, res) => {
 
 // Add base events
 router.post('/base/many', async (req, res) => {
-  const events = await loadEventsCollection();
+  const client = await getMongoClient();
+  const events = await loadEventsCollection(client);
   await events.deleteMany({});
-  const baseEvents = await loadBaseEventsCollection();
+  const baseEvents = await loadBaseEventsCollection(client);
   await baseEvents.deleteMany({});
   baseEventsToAdd = []
   for (index in req.body.items) {
@@ -99,11 +110,13 @@ router.post('/base/many', async (req, res) => {
     createEventsFromBaseEvent(baseEvent)
   });
   res.status(201).send();
+  await closeMongoClient(client);
 });
 
 // Update base event
 router.patch('/base/:id', async (req, res) => {
-  const baseEvents = await loadBaseEventsCollection();
+  const client = await getMongoClient();
+  const baseEvents = await loadBaseEventsCollection(client);
   await baseEvents.updateOne({
     _id: new mongodb.ObjectID(req.params.id)
   }, {
@@ -116,44 +129,56 @@ router.patch('/base/:id', async (req, res) => {
   });
   createEventsFromBaseEvent(await baseEvents.findOne({type: req.body.type}));
   res.status(201).send();
+  await closeMongoClient(client);
 });
 
 // Delete base event
 router.delete('/base/:id', async (req, res) => {
-  const baseEvents = await loadBaseEventsCollection();
+  const client = await getMongoClient();
+  const baseEvents = await loadBaseEventsCollection(client);
   await baseEvents.deleteOne({
     _id: new mongodb.ObjectID(req.params.id)
   });
   res.status(200).send();
+  await closeMongoClient(client);
 });
 
 // Helper to create an event
 async function createEvent(item) {
-  const events = await loadEventsCollection();
+  const client = await getMongoClient();
+  const events = await loadEventsCollection(client);
   await events.insertOne(item);
+  await closeMongoClient(client);
 }
 
 // Helper to create many events with only one database call
 async function createEvents(items) {
-  const events = await loadEventsCollection();
+  const client = await getMongoClient();
+  const events = await loadEventsCollection(client);
   await events.insertMany(items);
+  await closeMongoClient(client);
 }
 
 // Helper to create a base event
 async function createBaseEvent(item) {
-  const baseEvents = await loadBaseEventsCollection();
+  const client = await getMongoClient();
+  const baseEvents = await loadBaseEventsCollection(client);
   await baseEvents.insertOne(item);
+  await closeMongoClient(client);
 }
 
 // Helper to create many base events with only one database call
 async function createBaseEvents(items) {
-  const baseEvents = await loadBaseEventsCollection();
+  const client = await getMongoClient();
+  const baseEvents = await loadBaseEventsCollection(client);
   await baseEvents.insertMany(items);
+  await closeMongoClient(client);
 }
 
 // Helper to generate repating events based on a base event
 async function createEventsFromBaseEvent(baseEvent) {
-  const events = await loadEventsCollection();
+  const client = await getMongoClient();
+  const events = await loadEventsCollection(client);
   await events.deleteMany({type: baseEvent.type});
   date = new Date(baseEvent.start);
   eventsToAdd = [];
@@ -166,6 +191,7 @@ async function createEventsFromBaseEvent(baseEvent) {
     date = addDays(date, baseEvent.repeat);
   }
   createEvents(eventsToAdd);
+  await closeMongoClient(client);
 }
 
 // Helper to add X days to date
@@ -184,21 +210,25 @@ function subDays(date, days) {
 }
 
 // Load the events collection
-async function loadEventsCollection() {
-  const client = await mongodb.MongoClient.connect
-    ('mongodb+srv://m001-student:m001-mongodb-basics@sandbox-s8g7n.mongodb.net/destiny-reset?retryWrites=true&w=majority', {
-      useNewUrlParser: true
-    });
-    return client.db('destiny-reset').collection('events');
+async function loadEventsCollection(client) {
+  return client.db('destiny-reset').collection('events');
 }
 
 // Load the base events collection
-async function loadBaseEventsCollection() {
+async function loadBaseEventsCollection(client) {
+  return client.db('destiny-reset').collection('baseEvents');
+}
+
+async function getMongoClient() {
   const client = await mongodb.MongoClient.connect
     ('mongodb+srv://m001-student:m001-mongodb-basics@sandbox-s8g7n.mongodb.net/destiny-reset?retryWrites=true&w=majority', {
       useNewUrlParser: true
     });
-    return client.db('destiny-reset').collection('baseEvents');
+  return client;
+}
+
+async function closeMongoClient(client) {
+  client.close();
 }
 
 module.exports = router;
