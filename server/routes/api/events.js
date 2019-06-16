@@ -18,8 +18,6 @@ router.get('/current', async (_req, res) => {
   const client = await getMongoClient();
   const events = await loadEventsCollection(client);
   const today = new Date(new Date().getFullYear(), new Date().getMonth(), new Date().getDate());
-  console.log(addHours(addDays(today, 4), 13));
-  console.log(addHours(subDays(today, 2), 13));
   res.send(await events.find({
     start: {
       $lte: addHours(addDays(today, 4), 13)
