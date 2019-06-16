@@ -17,14 +17,15 @@ router.get('/', async (_req, res) => {
 router.get('/current', async (_req, res) => {
   const client = await getMongoClient();
   const events = await loadEventsCollection(client);
-  const thisWeekStart = subDays(new Date(), 3);
-  const thisWeekEnd = addDays(new Date(), 4);
+  const today = new Date(new Date().getFullYear(), new Date().getMonth(), new Date().getDate());
+  console.log(addHours(addDays(today, 4), 13));
+  console.log(addHours(subDays(today, 2), 13));
   res.send(await events.find({
     start: {
-      $lte: thisWeekEnd
+      $lte: addHours(addDays(today, 4), 13)
     },
     end: {
-      $gte: thisWeekStart
+      $gte: addHours(subDays(today, 2), 13)
     }
   }).toArray());
   await closeMongoClient(client);
@@ -207,6 +208,18 @@ function subDays(date, days) {
   var result = new Date(date);
   result.setDate(result.getDate() - days);
   return result;
+}
+
+// Helper to add X hours to a date
+function addHours(date, h) {
+  date.setTime(date.getTime() + (h*60*60*1000)); 
+  return date;
+}
+
+// Helper to subtract X hours to a date
+function subHours(date, h) {
+  date.setTime(date.getTime() - (h*60*60*1000)); 
+  return date;
 }
 
 // Load the events collection
